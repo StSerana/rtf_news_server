@@ -1,4 +1,4 @@
-package com.example.servingwebcontent;
+package com.example.servingwebcontent.classes;
 
 import lombok.*;
 
@@ -10,6 +10,7 @@ import javax.persistence.*;
 @NoArgsConstructor
 @Builder(toBuilder = true)
 @Entity
+@Table(name = "ARTICLE")
 public class Article {
 
     @Id
@@ -17,7 +18,12 @@ public class Article {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "fk_magazine")
     private Magazine magazine;
 
+    @Column(name = "name")
     private String name;
+
+    @Column(name = "author")
+    private String author;
 }

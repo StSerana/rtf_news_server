@@ -1,9 +1,8 @@
-package com.example.servingwebcontent;
+package com.example.servingwebcontent.classes;
 
 import lombok.*;
 
 import javax.persistence.*;
-import java.time.LocalDate;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
@@ -11,12 +10,16 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @Builder(toBuilder = true)
 @Entity
-@Table(name = "MAGAZINES")
-public class Magazine {
+@Table(name = "IMAGE")
+public class Image {
     @Id
     @GeneratedValue(strategy= GenerationType.AUTO)
     private Long id;
 
+    @Column(name = "name")
     private String name;
-    private LocalDate date;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "fk_page")
+    private Page page;
 }

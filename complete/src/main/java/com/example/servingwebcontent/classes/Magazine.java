@@ -1,8 +1,9 @@
-package com.example.servingwebcontent;
+package com.example.servingwebcontent.classes;
 
 import lombok.*;
 
 import javax.persistence.*;
+import java.time.LocalDate;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
@@ -10,11 +11,15 @@ import javax.persistence.*;
 @NoArgsConstructor
 @Builder(toBuilder = true)
 @Entity
-public class Maket {
+@Table(name = "MAGAZINE")
+public class Magazine {
     @Id
     @GeneratedValue(strategy= GenerationType.AUTO)
     private Long id;
 
+    @Column(name = "name")
     private String name;
-    private String handler;
+
+    @Column(name = "date")
+    private LocalDate date;
 }

@@ -1,8 +1,7 @@
-package com.example.servingwebcontent;
+package com.example.servingwebcontent.dtos;
 
 import lombok.Builder;
 import lombok.Data;
-import org.apache.coyote.Response;
 
 @Data
 @Builder

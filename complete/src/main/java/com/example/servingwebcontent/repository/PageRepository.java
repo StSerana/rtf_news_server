@@ -1,5 +1,7 @@
-package com.example.servingwebcontent;
+package com.example.servingwebcontent.repository;
 
+import com.example.servingwebcontent.classes.Article;
+import com.example.servingwebcontent.classes.Page;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 

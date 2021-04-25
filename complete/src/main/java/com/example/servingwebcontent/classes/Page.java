@@ -1,11 +1,12 @@
-package com.example.servingwebcontent;
+package com.example.servingwebcontent.classes;
 
+import com.example.servingwebcontent.classes.Article;
+import com.example.servingwebcontent.classes.Maket;
 import lombok.*;
+import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
@@ -13,18 +14,24 @@ import java.util.Set;
 @NoArgsConstructor
 @Builder(toBuilder = true)
 @Entity
+@Table(name = "PAGE")
 public class Page {
     @Id
     @GeneratedValue(strategy= GenerationType.AUTO)
     private Long id;
 
     @ManyToOne
+    @JoinColumn(name = "fk_article_id")
     private Article article;
 
-    private String text;
+    @ElementCollection
+    @Column(name = "text")
+    private List<String> text;
 
+    @Column(name = "number")
     private int number;
 
     @ManyToOne
+    @JoinColumn(name = "fk_maket")
     private Maket maket;
 }

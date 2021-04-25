@@ -1,12 +1,15 @@
-package com.example.servingwebcontent;
+package com.example.servingwebcontent.repository;
 
+import com.example.servingwebcontent.classes.Magazine;
 import org.springframework.data.repository.CrudRepository;
-import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.util.List;
+
 public interface MagazineRepository extends CrudRepository<Magazine, Long>{
     Magazine findByDate(LocalDate date);
+    Magazine findById(long id);
+    List<Magazine> findAll();
 
     @Override
     <S extends Magazine> S save(S entity);
