@@ -12,4 +12,6 @@ public class MagazineDto {
     private String name;
     private LocalDate date;
     private List<ArticleDto> articles;
+    private PageDto main;
+    private PageDto chapterList;
 }

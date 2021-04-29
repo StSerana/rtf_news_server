@@ -21,6 +21,10 @@ public class Page {
     private Long id;
 
     @ManyToOne
+    @JoinColumn(name = "fk_magazine_id")
+    private Magazine magazine;
+
+    @ManyToOne
     @JoinColumn(name = "fk_article_id")
     private Article article;
 

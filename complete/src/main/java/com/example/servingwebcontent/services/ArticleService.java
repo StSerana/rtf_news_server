@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 @Service
@@ -40,6 +41,10 @@ public class ArticleService {
                     magazineDto.setId(magazine.getId().intValue());
                     magazineDto.setName(magazine.getName());
                     magazineDto.setDate(magazine.getDate());
+                    MainPages mainPages = getMainPagesForMagazine(magazine);
+                    magazineDto.setMain(mainPages.main);
+                    magazineDto.setChapterList(mainPages.chapters);
+                    magazineDto.setArticles(getAllArticles(magazine.getId().intValue()));
                     magazineDtos.add(magazineDto);
                 });
         return magazineDtos;
@@ -68,6 +73,9 @@ public class ArticleService {
         magazineDto.setId(magazineId);
         magazineDto.setDate(magazine.getDate());
         magazineDto.setName(magazine.getName());
+        MainPages mainPages = getMainPagesForMagazine(magazine);
+        magazineDto.setMain(mainPages.main);
+        magazineDto.setChapterList(mainPages.chapters);
         magazineDto.setArticles(getAllArticles(magazineId));
         return magazineDto;
     }
@@ -78,6 +86,7 @@ public class ArticleService {
         magazine.setName(magazineDto.getName());
         magazine.setDate(magazineDto.getDate());
         magazineRepository.save(magazine);
+        createMainPages(magazine.getId().intValue(), magazineDto.getMain(), magazineDto.getChapterList());
         if (!magazineDto.getArticles().isEmpty()){
             magazineDto.getArticles()
                     .forEach(articleDto -> createArticle(magazine.getId().intValue(), articleDto));
@@ -96,6 +105,23 @@ public class ArticleService {
             articleDto.getPages()
                     .forEach(pageDto -> createPage(article.getId().intValue(), pageDto));
         }
+    }
+
+    @Transactional
+    public void createMainPages(int magazine_id, PageDto main, PageDto chapters){
+        Magazine magazine = magazineRepository.findById(magazine_id);
+        Page mainPage = new Page(),
+                chaptersPage = new Page();
+
+        mainPage.setNumber(0);
+        mainPage.setMaket(maketRepository.findByName(main.getMaket()));
+        mainPage.setMagazine(magazine);
+        pageRepository.save(mainPage);
+
+        chaptersPage.setNumber(1);
+        chaptersPage.setMaket(maketRepository.findByName(chapters.getMaket()));
+        chaptersPage.setMagazine(magazine);
+        pageRepository.save(chaptersPage);
     }
 
     @Transactional
@@ -123,18 +149,53 @@ public class ArticleService {
         List<PageDto> pageDtos = new ArrayList<>();
         pageRepository.findAllByArticle(article).forEach(
                page -> {
-                   PageDto pageDto = new PageDto();
-                   pageDto.setId(page.getId().intValue());
-                   pageDto.setNumber(page.getNumber());
-                   pageDto.setText(page.getText());
-                   pageDto.setMaket(page.getMaket().getName());
-                   pageDto.setImages(imageRepository.findAllByPage(page)
-                           .stream()
-                           .map(image -> image.getName())
-                           .collect(Collectors.toList()));
-                   pageDtos.add(pageDto);
+                   pageDtos.add(createPageDto(page));
                }
         );
         return pageDtos;
+    }
+
+    public PageDto createPageDto(Page page){
+        PageDto pageDto = new PageDto();
+        pageDto.setId(page.getId().intValue());
+        pageDto.setNumber(page.getNumber());
+        pageDto.setText(page.getText());
+        pageDto.setMaket(page.getMaket().getName());
+        pageDto.setImages(imageRepository.findAllByPage(page)
+                .stream()
+                .map(image -> image.getName())
+                .collect(Collectors.toList()));
+        return pageDto;
+    }
+
+    @Transactional
+    public MainPages getMainPagesForMagazine(Magazine magazine){
+        List<Page> mainPages = pageRepository.findAllByMagazine(magazine);
+        AtomicReference<PageDto> main = new AtomicReference<PageDto>();
+        AtomicReference<PageDto> chapter = new AtomicReference<>(new PageDto());
+        mainPages.stream().forEach(page -> {
+            switch (page.getNumber()) {
+            case 0:
+                main.set(createPageDto(page));
+                break;
+            case 1:
+                chapter.set(createPageDto(page));
+                break;
+            default:
+                break;
+            }
+        }
+        );
+        return new MainPages(main.get(), chapter.get());
+    }
+
+    public class MainPages {
+        public final PageDto main;
+        public final PageDto chapters;
+
+        public MainPages(PageDto main, PageDto chapters) {
+            this.main = main;
+            this.chapters = chapters;
+        }
     }
 }

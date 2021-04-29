@@ -12,6 +12,7 @@ import org.springframework.http.HttpRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -29,28 +30,28 @@ public class ArticleController {
 
     @CrossOrigin
     @RequestMapping(value = "/magazine", method = RequestMethod.GET, produces = "application/json")
-    public @ResponseBody String getAllMagazines() {
+    public @ResponseBody List<MagazineDto> getAllMagazines() {
         System.out.println("get all magazines");
-        return gson.toJson(Optional.ofNullable(articleService.getAllMagazines()));
+        return articleService.getAllMagazines();
     }
 
     @CrossOrigin
     @RequestMapping(value = "/article", method = RequestMethod.GET, produces = "application/json")
-    public @ResponseBody String getAllArticles(@RequestParam(name="magazineId", required=false, defaultValue="0") int magazineId){
+    public @ResponseBody List<ArticleDto> getAllArticles(@RequestParam(name="magazineId", required=false, defaultValue="0") int magazineId){
         List<ArticleDto> articles = articleService.getAllArticles(magazineId);
-        return gson.toJson(Optional.ofNullable(articles));
+        return articles;
     }
 
     @RequestMapping(value = "/magazine/{magazine_id}", method = RequestMethod.GET, produces = "application/json")
-    public @ResponseBody String getMagazine(@PathVariable int magazine_id){
+    public @ResponseBody List<MagazineDto> getMagazine(@PathVariable int magazine_id){
         MagazineDto magazineDto = articleService.getMagazine(magazine_id);
-        return gson.toJson(Optional.ofNullable(magazineDto));
+        return Arrays.asList(magazineDto);
     }
 
     @RequestMapping(value = "/article/{article_id}", method = RequestMethod.GET, produces = "application/json")
-    public @ResponseBody String getArticle(@PathVariable int article_id){
+    public @ResponseBody List<ArticleDto> getArticle(@PathVariable int article_id){
         ArticleDto articleDto = articleService.getArticle(article_id);
-        return gson.toJson(Optional.ofNullable(articleDto));
+        return Arrays.asList(articleDto);
     }
 
     @RequestMapping(value = "/create_magazine", method = RequestMethod.POST, produces = "application/json")
