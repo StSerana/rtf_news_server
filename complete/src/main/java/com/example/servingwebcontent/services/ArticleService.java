@@ -7,10 +7,12 @@ import com.example.servingwebcontent.dtos.ArticleDto;
 import com.example.servingwebcontent.dtos.MagazineDto;
 import com.example.servingwebcontent.dtos.PageDto;
 import com.example.servingwebcontent.repository.*;
+import lombok.Data;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
@@ -42,8 +44,8 @@ public class ArticleService {
                     magazineDto.setName(magazine.getName());
                     magazineDto.setDate(magazine.getDate());
                     MainPages mainPages = getMainPagesForMagazine(magazine);
-                    magazineDto.setMain(mainPages.main);
-                    magazineDto.setChapterList(mainPages.chapters);
+                    magazineDto.setMain(Arrays.asList(mainPages.getMain()));
+                    magazineDto.setChapterList(Arrays.asList(mainPages.getChapters()));
                     magazineDto.setArticles(getAllArticles(magazine.getId().intValue()));
                     magazineDtos.add(magazineDto);
                 });
@@ -74,8 +76,8 @@ public class ArticleService {
         magazineDto.setDate(magazine.getDate());
         magazineDto.setName(magazine.getName());
         MainPages mainPages = getMainPagesForMagazine(magazine);
-        magazineDto.setMain(mainPages.main);
-        magazineDto.setChapterList(mainPages.chapters);
+        magazineDto.setMain(Arrays.asList(mainPages.getMain()));
+        magazineDto.setChapterList(Arrays.asList(mainPages.getChapters()));
         magazineDto.setArticles(getAllArticles(magazineId));
         return magazineDto;
     }
@@ -86,7 +88,7 @@ public class ArticleService {
         magazine.setName(magazineDto.getName());
         magazine.setDate(magazineDto.getDate());
         magazineRepository.save(magazine);
-        createMainPages(magazine.getId().intValue(), magazineDto.getMain(), magazineDto.getChapterList());
+        createMainPages(magazine.getId().intValue(), magazineDto.getMain().get(0), magazineDto.getChapterList().get(0));
         if (!magazineDto.getArticles().isEmpty()){
             magazineDto.getArticles()
                     .forEach(articleDto -> createArticle(magazine.getId().intValue(), articleDto));
@@ -147,7 +149,16 @@ public class ArticleService {
     @Transactional
     public List<PageDto> getPagesForArticle(Article article){
         List<PageDto> pageDtos = new ArrayList<>();
-        pageRepository.findAllByArticle(article).forEach(
+        List<Page> pages = pageRepository.findAllByArticle(article);
+        pages.sort((page1, page2)->{
+            if (page1.getNumber() > page2.getNumber())
+                return 1;
+            else if (page1.getNumber() == page2.getNumber())
+                return 0;
+            else
+                return -1;
+        });
+        pages.forEach(
                page -> {
                    pageDtos.add(createPageDto(page));
                }
@@ -171,31 +182,26 @@ public class ArticleService {
     @Transactional
     public MainPages getMainPagesForMagazine(Magazine magazine){
         List<Page> mainPages = pageRepository.findAllByMagazine(magazine);
-        AtomicReference<PageDto> main = new AtomicReference<PageDto>();
-        AtomicReference<PageDto> chapter = new AtomicReference<>(new PageDto());
+        MainPages mainPagesDto = new MainPages();
         mainPages.stream().forEach(page -> {
             switch (page.getNumber()) {
             case 0:
-                main.set(createPageDto(page));
+                mainPagesDto.setMain(createPageDto(page));
                 break;
             case 1:
-                chapter.set(createPageDto(page));
+                mainPagesDto.setChapters(createPageDto(page));
                 break;
             default:
                 break;
             }
         }
         );
-        return new MainPages(main.get(), chapter.get());
+        return mainPagesDto;
     }
 
+    @Data
     public class MainPages {
-        public final PageDto main;
-        public final PageDto chapters;
-
-        public MainPages(PageDto main, PageDto chapters) {
-            this.main = main;
-            this.chapters = chapters;
-        }
+        public PageDto main;
+        public PageDto chapters;
     }
 }
