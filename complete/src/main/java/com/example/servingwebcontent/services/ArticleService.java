@@ -8,16 +8,16 @@ import com.example.servingwebcontent.dtos.MagazineDto;
 import com.example.servingwebcontent.dtos.PageDto;
 import com.example.servingwebcontent.repository.*;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class ArticleService {
 
     private final ArticleRepository articleRepository;
@@ -56,6 +56,7 @@ public class ArticleService {
     @Transactional
     public List<ArticleDto> getAllArticles(int magazineId){
         List<Article> articles = articleRepository.findAllByMagazine(magazineRepository.findById(magazineId));
+        articles.sort((a1, a2)-> (int) (a1.getId() - a2.getId()));
         List<ArticleDto> articleDtos = new ArrayList<>();
         articles.forEach(article -> {
             ArticleDto articleDto = new ArticleDto();
@@ -65,6 +66,7 @@ public class ArticleService {
             articleDto.setPages(getPagesForArticle(article));
             articleDtos.add(articleDto);
         });
+        articleDtos.sort(Comparator.comparingInt(ArticleDto::getId));
         return articleDtos;
     }
 
@@ -197,6 +199,44 @@ public class ArticleService {
         }
         );
         return mainPagesDto;
+    }
+
+    @Transactional
+    public boolean deleteMagazine(int magazine_id) {
+        try{
+            Magazine magazine = magazineRepository.findById(magazine_id);
+            List<Article> articles = articleRepository.findAllByMagazine(magazine);
+            pageRepository.deleteAllByMagazine(magazine);
+            articles.forEach(article -> {
+                pageRepository.deleteAllByArticle(article);
+            });
+            articleRepository.deleteAllByMagazine(magazine);
+            magazineRepository.deleteById(magazine_id);
+            return true;
+        } catch (Exception ex){
+            log.error("problems: " + ex.getMessage());
+            return false;
+        }
+    }
+
+    @Transactional
+    public PageDto getPage(int pageId) {
+        Page page = pageRepository.findById(pageId);
+        return createPageDto(page);
+    }
+
+    @Transactional
+    public List<PageDto> getPages() {
+        List<Page> pages = (List<Page>) pageRepository.findAll();
+        return pages.stream().map(page -> createPageDto(page)).collect(Collectors.toList());
+    }
+
+    @Transactional
+    public PageDto updatePage(int page_id, List<String> text) {
+        Page page = pageRepository.findById(page_id);
+        page.setText(text);
+        pageRepository.save(page);
+        return createPageDto(page);
     }
 
     @Data

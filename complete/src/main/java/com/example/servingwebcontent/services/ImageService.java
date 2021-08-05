@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
+import java.util.Base64;
 import java.util.stream.Stream;
 
 @Service
@@ -19,13 +20,15 @@ public class ImageService {
     @Value("${imagesFolder}")
     private String PATH_TO_IMAGES;
 
-    public byte[] load(String filename) throws IOException {
+    public String load(String filename) throws IOException {
         File file = new File(PATH_TO_IMAGES + filename);
         //InputStream inputStream = getClass().getClassLoader().getResourceAsStream(PATH_TO_IMAGES + filename);
         if (file == null) {
             throw new IllegalArgumentException("file not found! " + PATH_TO_IMAGES + filename);
         } else {
-            return FileUtils.readFileToByteArray(file);
+            byte[] fileContent = FileUtils.readFileToByteArray(file);
+            String encodedString = Base64.getEncoder().encodeToString(fileContent);
+            return encodedString;
         }
     }
 

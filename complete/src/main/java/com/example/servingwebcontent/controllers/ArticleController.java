@@ -8,18 +8,15 @@ import com.example.servingwebcontent.dtos.ResultMessage;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpRequest;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @CrossOrigin
 public class ArticleController {
-    @Autowired
+
     private ArticleService articleService;
 
     private Gson gson = new GsonBuilder().setPrettyPrinting().create();
@@ -28,29 +25,53 @@ public class ArticleController {
         this.articleService = articleService;
     }
 
-    @CrossOrigin
     @RequestMapping(value = "/magazine", method = RequestMethod.GET, produces = "application/json")
     public @ResponseBody List<MagazineDto> getAllMagazines() {
-        System.out.println("get all magazines");
         return articleService.getAllMagazines();
     }
 
-    @CrossOrigin
-    @RequestMapping(value = "/article", method = RequestMethod.GET, produces = "application/json")
-    public @ResponseBody List<ArticleDto> getAllArticles(@RequestParam(name="magazineId", required=false, defaultValue="0") int magazineId){
+    @RequestMapping(value = "/article/{magazineId}", method = RequestMethod.GET, produces = "application/json")
+    public @ResponseBody List<ArticleDto> getAllArticles(@PathVariable int magazineId){
         List<ArticleDto> articles = articleService.getAllArticles(magazineId);
         return articles;
     }
 
-    @RequestMapping(value = "/magazine/{magazine_id}", method = RequestMethod.GET, produces = "application/json")
-    public @ResponseBody List<MagazineDto> getMagazine(@PathVariable int magazine_id){
-        MagazineDto magazineDto = articleService.getMagazine(magazine_id);
+    @CrossOrigin
+    @RequestMapping(value = "/page", method = RequestMethod.GET, produces = "application/json")
+    public @ResponseBody List<PageDto> getPages() {
+        List<PageDto> articles = articleService.getPages();
+        return articles;
+    }
+
+    @CrossOrigin
+    @RequestMapping(value = "/page/{page_id}", method = RequestMethod.GET, produces = "application/json")
+    public @ResponseBody PageDto getPage(@PathVariable int page_id){
+        PageDto articles = articleService.getPage(page_id);
+        return articles;
+    }
+
+    @CrossOrigin
+    @RequestMapping(value = "/page/{page_id}", method = RequestMethod.PUT, produces = "application/json")
+    public @ResponseBody PageDto updatePage(@PathVariable int page_id, @RequestBody List<String> text){
+        PageDto articles = articleService.updatePage(page_id, text);
+        return articles;
+    }
+
+    @RequestMapping(value = "/magazine/{magazineId}", method = RequestMethod.GET, produces = "application/json")
+    public @ResponseBody List<MagazineDto> getMagazine(@PathVariable int magazineId){
+        MagazineDto magazineDto = articleService.getMagazine(magazineId);
         return Arrays.asList(magazineDto);
     }
 
-    @RequestMapping(value = "/article/{article_id}", method = RequestMethod.GET, produces = "application/json")
-    public @ResponseBody List<ArticleDto> getArticle(@PathVariable int article_id){
-        ArticleDto articleDto = articleService.getArticle(article_id);
+    @RequestMapping(value = "/magazine/{magazineId}", method = RequestMethod.DELETE, produces = "application/json")
+    public @ResponseBody String deleteMagazine(@PathVariable int magazineId){
+        boolean status = articleService.deleteMagazine(magazineId);
+        return gson.toJson(status ? ResultMessage.getSuccess() : ResultMessage.getError());
+    }
+
+    @RequestMapping(value = "/article/{articleId}", method = RequestMethod.GET, produces = "application/json")
+    public @ResponseBody List<ArticleDto> getArticle(@PathVariable int articleId){
+        ArticleDto articleDto = articleService.getArticle(articleId);
         return Arrays.asList(articleDto);
     }
 
@@ -60,15 +81,15 @@ public class ArticleController {
         return gson.toJson(ResultMessage.getSuccess());
     }
 
-    @RequestMapping(value = "/create_article/{magazine_id}", method = RequestMethod.POST, produces = "application/json")
-    public @ResponseBody String createArticle(@RequestBody ArticleDto articleDto, @PathVariable int magazine_id){
-        articleService.createArticle(magazine_id, articleDto);
+    @RequestMapping(value = "/create_article/{magazineId}", method = RequestMethod.POST, produces = "application/json")
+    public @ResponseBody String createArticle(@RequestBody ArticleDto articleDto, @PathVariable int magazineId){
+        articleService.createArticle(magazineId, articleDto);
         return gson.toJson(ResultMessage.getSuccess());
     }
 
-    @RequestMapping(value = "/create_page/{article_id}", method = RequestMethod.POST, produces = "application/json")
-    public @ResponseBody String createPage(@RequestBody PageDto pageDto, @PathVariable int article_id){
-        articleService.createPage(article_id, pageDto);
+    @RequestMapping(value = "/create_page/{articleId}", method = RequestMethod.POST, produces = "application/json")
+    public @ResponseBody String createPage(@RequestBody PageDto pageDto, @PathVariable int articleId){
+        articleService.createPage(articleId, pageDto);
         return gson.toJson(ResultMessage.getSuccess());
     }
 

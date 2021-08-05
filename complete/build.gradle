@@ -18,6 +18,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.projectlombok:lombok:1.18.16'
 	implementation 'org.hibernate:hibernate-entitymanager:5.3.7.Final'
+	implementation group: 'commons-io', name: 'commons-io', version: '2.6'
 	// https://mvnrepository.com/artifact/commons-io/commons-io
 	implementation group: 'commons-io', name: 'commons-io', version: '2.5'
 	compile 'org.springframework.boot:spring-boot-starter-data-jpa'

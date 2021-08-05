@@ -17,6 +17,13 @@ public class ResultMessage {
                 .status(Status.SUCCESS).build();
     }
 
+    public static ResultMessage getError(){
+        return ResultMessage.builder()
+                .message("some problems")
+                .status(Status.ERROR).build();
+    }
+
+
     enum Status {
         SUCCESS,
         ERROR

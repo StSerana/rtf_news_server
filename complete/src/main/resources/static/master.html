@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<center><h1>Мастер-панель</h1></center>
+<ul>
+    <li>
+        <h5>Удаление объекта</h5>
+        <input type="number" id="deleteMagazine">
+        <button type="submit" onclick="deleteMagazine()">OK</button>
+    </li>
+    <li>
+        <h5>Обновление текста</h5>
+        <button type="submit" onclick="getTexts()">GET</button>
+    </li>
+</ul>
+<script>
+    var host = "http://80.87.111.224:8080/rtf/"
+    function deleteMagazine() {
+        var magazine = document.getElementById("deleteMagazine").value;
+        var url = "magazine/" + magazine
+        let deleteItem = fetch(host + url, {
+            method:'DELETE'
+        })
+            .then(response => response.json())
+            .then((data) => {
+                console.log(data);
+            })
+            .catch(err => { throw err });
+    }
+    function getTexts() {
+        var url = "page/"
+        var pages = fetch(host + url)
+            .then(response => response.json())
+            .then((data) => {
+                console.log(data);
+            })
+            .catch(err => { throw err });
+        const vdom$ = pages.map(page =>
+        div('.page',[
+
+        ]));
+    }
+</script>
+</body>
+</html>

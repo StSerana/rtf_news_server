@@ -28,7 +28,7 @@ public class ImageController {
     }
 
     @RequestMapping(value = "/images", method = RequestMethod.GET)
-    public @ResponseBody byte[] serveFile(@RequestParam(name="filename", required=false, defaultValue="aaa.png") String filename) throws Exception {
+    public @ResponseBody String serveFile(@RequestParam(name="filename", required=false, defaultValue="aaa.png") String filename) throws Exception {
         /*InputStream file = imageService.load(filename);
         return IOUtils.toByteArray(file);*/
         return imageService.load(filename);

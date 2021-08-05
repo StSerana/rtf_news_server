@@ -8,7 +8,7 @@
     <p th:text="'Hello, ' + ${name} + '!'" />
 <script>
     let url = 'http://80.87.111.224:80/rtf/magazine/24';
-
+    let imageUrl = '';
     fetch(url, {mode:'cors'})
         .then(res => res.text())
         .then((data) => {

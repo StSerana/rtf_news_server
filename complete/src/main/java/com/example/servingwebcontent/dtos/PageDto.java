@@ -5,6 +5,7 @@ import lombok.Data;
 import java.util.List;
 
 @Data
+
 public class PageDto {
     private int id;
     private int number;

@@ -12,4 +12,5 @@ public interface ArticleRepository extends CrudRepository<Article, Long> {
 
     List<Article> findAllByMagazine(Magazine magazine);
     Article findById(long id);
+    void deleteAllByMagazine(Magazine magazine);
 }
