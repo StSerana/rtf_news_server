@@ -1,6 +1,7 @@
 package com.example.servingwebcontent.services;
 
 import com.example.servingwebcontent.classes.Article;
+import com.example.servingwebcontent.classes.Image;
 import com.example.servingwebcontent.classes.Magazine;
 import com.example.servingwebcontent.classes.Page;
 import com.example.servingwebcontent.dtos.ArticleDto;
@@ -9,11 +10,11 @@ import com.example.servingwebcontent.dtos.PageDto;
 import com.example.servingwebcontent.repository.*;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 @Service
@@ -25,6 +26,9 @@ public class ArticleService {
     private final MagazineRepository magazineRepository;
     private final MaketRepository maketRepository;
     private final ImageRepository imageRepository;
+
+    @Value("${nullImageName}")
+    private String nullImage;
 
     public ArticleService(ArticleRepository articleRepository, PageRepository pageRepository, MagazineRepository magazineRepository, MaketRepository maketRepository, ImageRepository imageRepository) {
         this.articleRepository = articleRepository;
@@ -118,12 +122,12 @@ public class ArticleService {
                 chaptersPage = new Page();
 
         mainPage.setNumber(0);
-        mainPage.setMaket(maketRepository.findByName(main.getMaket()));
+        mainPage.setMaket(maketRepository.findByName(main.getMaket()).orElse(maketRepository.findById(1)));
         mainPage.setMagazine(magazine);
         pageRepository.save(mainPage);
 
         chaptersPage.setNumber(1);
-        chaptersPage.setMaket(maketRepository.findByName(chapters.getMaket()));
+        chaptersPage.setMaket(maketRepository.findByName(chapters.getMaket()).orElse(maketRepository.findById(1)));
         chaptersPage.setMagazine(magazine);
         pageRepository.save(chaptersPage);
     }
@@ -134,9 +138,21 @@ public class ArticleService {
         Page page = new Page();
         page.setArticle(article);
         page.setNumber(pageDto.getNumber());
-        page.setMaket(maketRepository.findByName(pageDto.getMaket()));
+        page.setMaket(maketRepository.findByName(pageDto.getMaket()).orElse(maketRepository.findById(1)));
         page.setText(pageDto.getText());
         pageRepository.save(page);
+        if (!pageDto.getImages().isEmpty()){
+            pageDto.getImages().forEach(image -> createImage(image, page));
+        }
+    }
+
+    private void createImage(String imageName, Page page) {
+        if (imageName != nullImage) {
+            Image image = new Image();
+            image.setName(imageName);
+            image.setPage(page);
+            imageRepository.save(image);
+        }
     }
 
     public ArticleDto getArticle(int articleId){
@@ -176,7 +192,7 @@ public class ArticleService {
         pageDto.setMaket(page.getMaket().getName());
         pageDto.setImages(imageRepository.findAllByPage(page)
                 .stream()
-                .map(image -> image.getName())
+                .map(Image::getName)
                 .collect(Collectors.toList()));
         return pageDto;
     }
@@ -206,8 +222,12 @@ public class ArticleService {
         try{
             Magazine magazine = magazineRepository.findById(magazine_id);
             List<Article> articles = articleRepository.findAllByMagazine(magazine);
+            log.info("delete images by magazine");
+            pageRepository.findAllByMagazine(magazine).forEach(imageRepository::deleteAllByPage);
             pageRepository.deleteAllByMagazine(magazine);
             articles.forEach(article -> {
+                log.info("delete images by article");
+                pageRepository.findAllByArticle(article).forEach(imageRepository::deleteAllByPage);
                 pageRepository.deleteAllByArticle(article);
             });
             articleRepository.deleteAllByMagazine(magazine);

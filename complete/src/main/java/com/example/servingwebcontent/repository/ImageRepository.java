@@ -10,4 +10,8 @@ import java.util.List;
 @Repository
 public interface ImageRepository extends CrudRepository<Image, Long> {
     List<Image> findAllByPage(Page page);
+    void deleteAllByPage(Page page);
+
+    @Override
+    <S extends Image> S save(S entity);
 }
